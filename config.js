@@ -9,12 +9,12 @@
  *    (데모 모드: 이 기기 브라우저에만 저장되어 화면 확인용으로만 쓸 수 있어요)
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCmhtUq0vX0glwSh4OuKaWYt_3CLSFE4So",
+  authDomain: "gg-garden-tour-2026.firebaseapp.com",
+  projectId: "gg-garden-tour-2026",
+  storageBucket: "gg-garden-tour-2026.firebasestorage.app",
+  messagingSenderId: "1019172768669",
+  appId: "1:1019172768669:web:4119a4b6ddd78e3104bd74"
 };
 
 /* 2) 현장 운영 정보 */
