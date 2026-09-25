@@ -178,6 +178,44 @@
       await fb.fsM.setDoc(fb.fsM.doc(fb.db, "settings", "app"), data, { merge: true });
     },
 
+    /* 테스트 기록 초기화: 참여 기록·만족도 응답 전체 삭제 + 초기화 시각 기록
+       (참여자 휴대폰은 다음 접속 때 이 시각을 보고 스스로 처음 화면으로 돌아가요) */
+    async resetAll(onProgress) {
+      const stamp = Date.now();
+      if (!useFirebase) {
+        const db = demoRead();
+        const n = { participants: Object.keys(db.participants).length, surveys: Object.keys(db.surveys).length };
+        db.participants = {}; db.surveys = {};
+        db.settings = Object.assign({}, db.settings, { resetAt: stamp, rewardSoldOut: false });
+        demoWrite(db);
+        return n;
+      }
+      await init();
+      const { collection, getDocs, writeBatch, doc, setDoc, serverTimestamp } = fb.fsM;
+      const n = {};
+      for (const name of ["surveys", "participants"]) {
+        const snap = await getDocs(collection(fb.db, name));
+        n[name] = snap.size;
+        let done = 0;
+        for (let i = 0; i < snap.docs.length; i += 400) {
+          const batch = writeBatch(fb.db);
+          const chunk = snap.docs.slice(i, i + 400);
+          chunk.forEach(d => batch.delete(d.ref));
+          await batch.commit();
+          done += chunk.length;
+          if (onProgress) onProgress(name, done, snap.size);
+        }
+      }
+      await setDoc(doc(fb.db, "settings", "app"), { resetAt: stamp, resetAtServer: serverTimestamp(), rewardSoldOut: false }, { merge: true });
+      return n;
+    },
+
+    /* 이 기기만 초기화: 익명 참여자 ID를 새로 받아 새 참여자로 시작 */
+    async resetDevice() {
+      if (!useFirebase) return;
+      try { await init(); await fb.authM.signOut(fb.auth); } catch (e) { /* ignore */ }
+    },
+
     /* 데모 모드 전용 */
     demoSeed(rows) {
       const db = demoRead();

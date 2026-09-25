@@ -210,9 +210,31 @@
           <button class="tbtn primary" id="csvSurvey">만족도 조사 응답 CSV</button>
           <button class="tbtn" id="csvPart">참여자·미션 기록 CSV</button>
         </div>
+      </section>
+
+      <section class="panel danger" id="resetPanel">
+        <h2>테스트 기록 초기화 <span>정식 운영 전 테스트를 마친 뒤 사용</span></h2>
+        ${inEvent() ? `<p class="msg err">지금은 박람회 운영 기간이에요. 실제 참여자 기록이 모두 지워지니 꼭 필요한 경우에만 사용하세요.</p>` : ""}
+        <ul class="rules">
+          <li><span>참여 기록 <b>${fmtN(A.visited)}건</b>과 만족도 응답 <b>${fmtN(A.surveyed)}건</b>을 모두 지워요.</span></li>
+          <li><span>테스트했던 휴대폰도 다음에 열면 저장된 진행 상황이 지워지고 처음 화면부터 시작해요.</span></li>
+          <li><span>안내소 위치·운영 시간·공지는 그대로 두고, '상품 소진' 표시만 해제해요.</span></li>
+          <li><span><strong>지운 기록은 되돌릴 수 없어요.</strong> 필요하면 위에서 CSV를 먼저 내려받으세요.</span></li>
+        </ul>
+        ${set.resetAt ? `<p class="small muted" style="margin:0">마지막 초기화: ${timeLabel(set.resetAt)}</p>` : ""}
+        <form class="form" id="rsForm">
+          <label><span>확인을 위해 아래 칸에 <b>초기화</b>라고 입력하세요</span><input type="text" id="rsText" autocomplete="off" placeholder="초기화"></label>
+          <button class="tbtn danger" id="rsGo" type="submit" disabled>모든 참여 기록 삭제</button>
+          <span class="msg" id="rsMsg"></span>
+        </form>
       </section>`;
 
     bind(A);
+  }
+
+  function inEvent() {
+    const now = Date.now();
+    return CFG.openAt && CFG.closeAt && now >= new Date(CFG.openAt).getTime() && now <= new Date(CFG.closeAt).getTime();
   }
 
   function kindName(t) { return { choice: "연잎 고르기", ox: "물길 정하기", word: "연밥 낱말", dial: "물레 숫자", calendar: "달력 꽃심기", pair: "두 빛 고르기", palette: "돛 물들이기" }[t]; }
@@ -237,6 +259,26 @@
         await DB.saveSettings({ rewardSoldOut: $("#stSold").checked, deskLocation: $("#stDesk").value.trim(), deskHours: $("#stHours").value.trim(), notice: $("#stNotice").value.trim() });
         msg.className = "msg ok"; msg.textContent = "저장했어요. 참여자 화면은 새로 열 때 반영돼요.";
       } catch (er) { msg.className = "msg err"; msg.textContent = "저장하지 못했어요: " + (er.message || er); }
+    });
+    const rsText = $("#rsText"), rsGo = $("#rsGo"), rsMsg = $("#rsMsg");
+    rsText.addEventListener("input", () => { rsGo.disabled = rsText.value.trim() !== "초기화"; });
+    $("#rsForm").addEventListener("submit", async e => {
+      e.preventDefault();
+      if (rsText.value.trim() !== "초기화") return;
+      rsGo.disabled = true; rsText.disabled = true;
+      rsMsg.className = "msg"; rsMsg.textContent = "지우는 중…";
+      try {
+        const n = await DB.resetAll((name, done, total) => {
+          rsMsg.textContent = `${name === "surveys" ? "만족도 응답" : "참여 기록"} 지우는 중… ${fmtN(done)} / ${fmtN(total)}`;
+        });
+        await load();
+        const m = $("#rsMsg");
+        if (m) { m.className = "msg ok"; m.textContent = `초기화했어요. 참여 기록 ${fmtN(n.participants)}건, 만족도 응답 ${fmtN(n.surveys)}건을 지웠어요.`; }
+        const panel = $("#resetPanel"); if (panel) panel.scrollIntoView({ block: "center" });
+      } catch (er) {
+        rsMsg.className = "msg err"; rsMsg.textContent = "초기화하지 못했어요: " + (er.message || er) + " (관리자 권한과 보안 규칙을 확인해 주세요)";
+        rsGo.disabled = false; rsText.disabled = false;
+      }
     });
     $("#csvSurvey").addEventListener("click", () => downloadCSV("만족도조사_응답.csv", surveyRows()));
     $("#csvPart").addEventListener("click", () => downloadCSV("참여자_기록.csv", participantRows()));

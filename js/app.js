@@ -16,7 +16,8 @@
     v: 1, pid: rid(), uid: null, screen: "intro", nick: "",
     idx: 0, results: {}, tries: {}, hints: {},
     startedAt: null, completedAt: null,
-    sv: {}, svStep: 0, surveyAt: null, code: null, visited: false
+    sv: {}, svStep: 0, surveyAt: null, code: null, visited: false,
+    bornAt: Date.now(), resetSeen: null
   });
   function load() {
     try {
@@ -844,18 +845,66 @@
     return now < new Date(CFG.openAt).getTime() || now > new Date(CFG.closeAt).getTime();
   }
 
+  /* ---------- 초기화 ---------- */
+  const logVisit = () => { S.visited = true; save(); record({ visited: true, visitAtMs: Date.now(), ua: (navigator.userAgent || "").slice(0, 160) }); };
+  function startOver(opts) {
+    try { localStorage.removeItem(KEY); } catch (e) { /* ignore */ }
+    S = fresh();
+    if (opts && opts.resetSeen) S.resetSeen = opts.resetSeen;
+    save();
+    uidReady = (opts && opts.newId ? DB.resetDevice() : Promise.resolve())
+      .then(() => DB.ensureUser(S.pid))
+      .then(uid => { S.uid = uid; save(); return uid; });
+    logVisit();
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* ignore */ }
+    go("intro");
+  }
+
+  // 테스트용: 주소 끝에 #reset → 이 휴대폰의 기록만 지우기 (config.js allowDeviceReset 이 true 일 때만)
+  SCREENS.deviceReset = function () {
+    const allowed = !!CFG.allowDeviceReset;
+    const has = S.nick ? `<b>${esc(S.nick)}</b> · 모은 조각 ${Object.keys(S.results).length}/${TOTAL}${S.surveyAt ? " · 만족도 조사 완료" : ""}` : "아직 참여 기록이 없어요.";
+    app.innerHTML = `<section class="screen" style="justify-content:center">
+      <img src="assets/guide.webp" alt="" style="width:110px;margin:0 auto">
+      <h1 class="big-title center" style="color:var(--green-ink)">${allowed ? "이 휴대폰의 테스트 기록을<br>지울까요?" : "지금은 초기화할 수 없어요"}</h1>
+      <div class="desk"><span class="eyebrow">이 휴대폰의 기록</span><span>${has}</span></div>
+      ${allowed
+        ? `<p class="lede">닉네임·진행 상황·상품 수령 화면이 지워지고 처음 화면부터 다시 시작해요. 서버에 저장된 기록은 관리자 페이지의 '테스트 기록 초기화'로 지워요.</p>
+           <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+             <button class="btn ghost" id="rsNo" style="background:#fff;min-height:58px">취소</button>
+             <button class="btn pink" id="rsYes">기록 지우기</button>
+           </div>`
+        : `<p class="lede">정식 운영 중에는 휴대폰 기록을 지울 수 없어요.</p>
+           <button class="btn" id="rsNo">처음 화면으로</button>`}
+    </section>`;
+    $("#rsNo").addEventListener("click", () => { try { history.replaceState(null, "", location.pathname + location.search); } catch (e) { /* ignore */ } render(); });
+    const yes = $("#rsYes");
+    if (yes) yes.addEventListener("click", () => { yes.disabled = true; startOver({ newId: true, resetSeen: settings.resetAt || null }); });
+  };
+
+  function checkServerReset() {
+    const r = settings.resetAt;
+    if (!r || S.resetSeen === r) return false;
+    if ((S.bornAt || 0) < r) { startOver({ resetSeen: r }); return true; }
+    S.resetSeen = r; save();
+    return false;
+  }
+
   function boot() {
-    if (!S.visited) { S.visited = true; save(); record({ visited: true, visitAtMs: Date.now(), ua: (navigator.userAgent || "").slice(0, 160) }); }
+    if (location.hash === "#reset") { SCREENS.deviceReset(); DB.getSettings().then(s => { settings = s || {}; }); return; }
+    if (!S.visited) logVisit();
     if (scheduleClosed() && !S.surveyAt) { SCREENS.closed(); return; }
     // 진행 중이던 화면으로 복귀 (미션 중 이탈 → 인트로에서 '이어서 하기')
     if (S.screen === "mission" || S.screen === "chapter" || S.screen === "chapterDone") { S.lastScreen = S.screen; S.screen = "intro"; }
     render();
     DB.getSettings().then(s => {
       settings = s || {};
+      if (checkServerReset()) return;
       if (settings.rewardSoldOut || settings.notice || settings.deskLocation) {
         if (S.screen === "intro" || S.screen === "reward") render();
       }
     });
   }
+  window.addEventListener("hashchange", () => { if (location.hash === "#reset") SCREENS.deviceReset(); });
   boot();
 })();

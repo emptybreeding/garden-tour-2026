@@ -9,12 +9,12 @@
  *    (데모 모드: 이 기기 브라우저에만 저장되어 화면 확인용으로만 쓸 수 있어요)
  */
 window.FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCmhtUq0vX0glwSh4OuKaWYt_3CLSFE4So",
-  authDomain: "gg-garden-tour-2026.firebaseapp.com",
-  projectId: "gg-garden-tour-2026",
-  storageBucket: "gg-garden-tour-2026.firebasestorage.app",
-  messagingSenderId: "1019172768669",
-  appId: "1:1019172768669:web:4119a4b6ddd78e3104bd74"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 
 /* 2) 현장 운영 정보 */
@@ -29,6 +29,10 @@ window.TOUR_CONFIG = {
   enforceSchedule: false,
   openAt: "2026-10-16T09:00:00+09:00",
   closeAt: "2026-10-19T18:00:00+09:00",
+
+  // 테스트 기간용: 주소 끝에 #reset 을 붙여 열면 그 휴대폰의 기록만 지울 수 있어요.
+  // 정식 운영 전에 false 로 바꾸세요. (참여자가 기록을 지우고 상품을 다시 받는 것을 막기 위해)
+  allowDeviceReset: true,
 
   // 브라우저 저장 키 (행사 연도가 바뀌면 새 값으로)
   storageKey: "gg-garden-tour-2026"
