@@ -1,0 +1,47 @@
+rules_version = '2';
+
+// 2026 경기정원문화박람회 모바일 게임 투어 · Firestore 보안 규칙
+// Firebase 콘솔 → Firestore Database → 규칙(Rules) 탭에 통째로 붙여 넣고 '게시'하세요.
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function isAdmin() {
+      return signedIn() && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+    function isSelf(uid) { return signedIn() && request.auth.uid == uid; }
+
+    // 참여자 진행 기록: 자기 기기(익명 uid) 문서만 쓰기, 읽기는 관리자와 본인
+    match /participants/{uid} {
+      allow read: if isAdmin() || isSelf(uid);
+      allow create, update: if isSelf(uid)
+        && request.resource.data.size() < 40
+        && (!('nickname' in request.resource.data)
+            || (request.resource.data.nickname is string && request.resource.data.nickname.size() <= 20));
+      allow delete: if isAdmin();
+    }
+
+    // 만족도 조사: 1인 1회 제출(수정 불가), 읽기는 관리자만
+    match /surveys/{uid} {
+      allow read: if isAdmin();
+      allow create: if isSelf(uid)
+        && request.resource.data.answers is map
+        && request.resource.data.comment is string
+        && request.resource.data.comment.size() <= 500;
+      allow update: if false;
+      allow delete: if isAdmin();
+    }
+
+    // 운영 설정(상품 소진·안내소 위치·공지): 누구나 읽기, 관리자만 쓰기
+    match /settings/{doc} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // 관리자 명단: 콘솔에서만 추가, 본인 확인용 읽기만 허용
+    match /admins/{uid} {
+      allow read: if isSelf(uid);
+      allow write: if false;
+    }
+  }
+}

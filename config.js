@@ -1,0 +1,35 @@
+/* =========================================================
+ *  2026 경기정원문화박람회 모바일 게임 투어 · 운영 설정
+ *  배포 전에 이 파일만 고치면 됩니다. (README.md 참고)
+ * ========================================================= */
+
+/* 1) Firebase 연결 정보
+ *    Firebase 콘솔 → 프로젝트 설정 → 내 앱(웹) → SDK 설정 및 구성 에서 복사해 붙여 넣으세요.
+ *    apiKey 가 비어 있으면 '데모 모드'로 동작합니다.
+ *    (데모 모드: 이 기기 브라우저에만 저장되어 화면 확인용으로만 쓸 수 있어요)
+ */
+window.FIREBASE_CONFIG = {
+  apiKey: "AIzaSyCmhtUq0vX0glwSh4OuKaWYt_3CLSFE4So",
+  authDomain: "gg-garden-tour-2026.firebaseapp.com",
+  projectId: "gg-garden-tour-2026",
+  storageBucket: "gg-garden-tour-2026.firebasestorage.app",
+  messagingSenderId: "1019172768669",
+  appId: "1:1019172768669:web:4119a4b6ddd78e3104bd74"
+};
+
+/* 2) 현장 운영 정보 */
+window.TOUR_CONFIG = {
+  // 상품 수령 화면에 표시되는 투어 안내소 위치 (관리자 페이지에서도 바꿀 수 있어요)
+  deskLocation: "투어 안내소 (위치 확정 후 입력)",
+  deskHours: "운영 시간 확정 후 입력",
+
+  // 운영 기간 밖에 접속하면 '운영 기간이 아니에요' 화면을 보여줄지 여부
+  // 현장 테스트 중에는 false, 행사 직전에 true 로 바꾸세요.
+  // true 여도 주소 끝에 #preview 를 붙이면 미리보기가 가능합니다.
+  enforceSchedule: false,
+  openAt: "2026-10-16T09:00:00+09:00",
+  closeAt: "2026-10-19T18:00:00+09:00",
+
+  // 브라우저 저장 키 (행사 연도가 바뀌면 새 값으로)
+  storageKey: "gg-garden-tour-2026"
+};
