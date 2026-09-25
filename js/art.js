@@ -79,7 +79,7 @@
   /* 작은 아이콘들 */
   const icon = {
     leaf: (c = "#45A577") => `<svg class="leaf" viewBox="0 0 36 36" aria-hidden="true">${pad(18, 19, 15, 13, 0).replace(/class="a"/, `fill="${c}"`).replace(/class="v"/g, 'stroke="#F58DBF" stroke-width="1.1" fill="none"')}</svg>`,
-    bloom: (c = "#EE3E92", c2 = "#F58DBF") => `<svg class="bloom" viewBox="-24 -46 48 50" aria-hidden="true">${[-66, -33, 33, 66].map(a => `<path d="${PETAL}" fill="${c2}" transform="rotate(${a}) scale(.9)"/>`).join("")}${[-16, 16].map(a => `<path d="${PETAL}" fill="${c}" transform="rotate(${a}) scale(.8)"/>`).join("")}<path d="${PETAL}" fill="${c2}" transform="scale(.82,.7)"/><ellipse cx="0" cy="-12" rx="7" ry="3" fill="#FDC470"/></svg>`,
+    bloom: (c = "#EE3E92", c2 = "#F58DBF") => `<svg class="bloom" viewBox="-40 -46 80 52" aria-hidden="true">${[-66, -33, 33, 66].map(a => `<path d="${PETAL}" fill="${c2}" transform="rotate(${a}) scale(.9)"/>`).join("")}${[-16, 16].map(a => `<path d="${PETAL}" fill="${c}" transform="rotate(${a}) scale(.8)"/>`).join("")}<path d="${PETAL}" fill="${c2}" transform="scale(.82,.7)"/><ellipse cx="0" cy="-12" rx="7" ry="3" fill="#FDC470"/></svg>`,
     bud: () => `<svg viewBox="-16 -40 32 44" aria-hidden="true"><path d="M0 0 C-12 -10 -11 -30 0 -38 C11 -30 12 -10 0 0Z" fill="#EE4A98"/><path d="M0 0 C-13 -4 -16 -16 -14 -24 C-7 -16 -4 -9 0 0Z" fill="#F9B6D5"/><path d="M0 0 C13 -4 16 -16 14 -24 C7 -16 4 -9 0 0Z" fill="#F9B6D5"/><path d="M0 0 L0 4" stroke="#45A577" stroke-width="3"/></svg>`,
     stage: (n, on) => {
       // 1~5단계: 봉오리에서 만개까지
@@ -88,7 +88,7 @@
       const scale = [.62, .72, .8, .88, .95][n - 1];
       const petals = sets[n - 1].map((a, i) => `<path d="${PETAL}" fill="${i % 2 ? c : c2}" transform="rotate(${a}) scale(${scale})"/>`).join("");
       const center = n >= 4 ? `<ellipse cx="0" cy="-12" rx="${n === 5 ? 8 : 6}" ry="3" fill="${on ? "#FDC470" : "#E9EFEC"}"/>` : "";
-      return `<svg viewBox="-34 -46 68 52" aria-hidden="true">${petals}${center}<path d="M0 0 L0 6" stroke="${on ? "#45A577" : "#C9D9D4"}" stroke-width="3"/></svg>`;
+      return `<svg viewBox="-42 -48 84 56" aria-hidden="true">${petals}${center}<path d="M0 0 L0 6" stroke="${on ? "#45A577" : "#C9D9D4"}" stroke-width="3"/></svg>`;
     },
     garden: () => `<svg viewBox="-24 -46 48 50" aria-hidden="true"><path d="${PETAL}" fill="#F47AB3" transform="rotate(-40) scale(.8)"/><path d="${PETAL}" fill="#3FA9B4" transform="rotate(40) scale(.8)"/><path d="${PETAL}" fill="#45A577" transform="rotate(-10) scale(.8)"/><path d="${PETAL}" fill="#FDC470" transform="rotate(12) scale(.74)"/></svg>`
   };
