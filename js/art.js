@@ -51,7 +51,8 @@
     { c: "yellow", svg: `<g><path class="a" d="M96 72 L124 72 L127 112 L93 112 Z"/><path class="b" d="M95 84 L125 84 L125.5 87 L94.8 87 Z M94.2 98 L126.2 98 L126.4 101 L94 101 Z"/></g>` }
   ];
 
-  function garden(states, just) {
+  function garden(states, just, opts) {
+    opts = opts || {};
     // states: array(16) of "off" | "on" | "miss"
     const pc = i => {
       const st = states[i] || "off";
@@ -59,7 +60,7 @@
       return `<g class="${cls}">${PIECES[i].svg}</g>`;
     };
     const stem = "#F6C4DA";
-    return `<svg viewBox="0 0 360 304" role="img" aria-label="모은 색으로 채워지는 두물머리 정원 그림">
+    return `<svg viewBox="0 0 360 304" ${opts.par ? `preserveAspectRatio="${opts.par}"` : ""} role="img" aria-label="모은 색으로 채워지는 두물머리 정원 그림">
             ${pc(12)}
       ${pc(4)}${pc(5)}${pc(6)}
       <ellipse cx="304" cy="100" rx="48" ry="12" fill="#DCDDE6"/><ellipse cx="304" cy="96" rx="44" ry="8" fill="#EDEEF3"/>
@@ -73,6 +74,7 @@
       ${pc(8)}${pc(9)}${pc(11)}
       ${pc(3)}${pc(1)}${pc(2)}${pc(0)}
       ${pc(13)}${pc(14)}
+      ${opts.extra || ""}
     </svg>`;
   }
 

@@ -156,12 +156,13 @@
     </section>`;
   };
 
-  /* ---------- 인트로 ---------- */
+  /* ---------- 인트로 (첫 화면: 타이틀 + 그림 + 시작 버튼만) ---------- */
   SCREENS.intro = function () {
     if (S.surveyAt) return go("reward");
     const inProgress = S.nick && S.startedAt;
     const progressText = inProgress ? `${Object.keys(S.results).length}/${TOTAL}` : "";
-    app.innerHTML = `<section class="screen">
+    const sheep = `<image class="sheep" href="assets/guide.webp" x="18" y="178" width="84" height="118"/>`;
+    app.innerHTML = `<section class="screen cover">
       <div class="intro-head">
         <div class="intro-year">2026 경기<sup>14th</sup></div>
         <h1 class="intro-name display" style="margin:0">정원문화박람회</h1>
@@ -170,22 +171,13 @@
       </div>
 
       <div class="hero garden" aria-hidden="true">
-        ${ART.garden(Array(TOTAL).fill("on"))}
-        <img class="guide" src="assets/guide.webp" alt="">
-      </div>
-
-      <div class="program">
-        <span class="eyebrow">오늘의 탐험</span>
-        <h2>${esc(C.program.title)}</h2>
-        <p>박람회 주제 '두물머리 사:색'처럼, 정원 곳곳에 숨은 <b>네 가지 색</b>을 미션으로 모아 나만의 정원을 완성해요.</p>
-        <div class="swatches">${C.chapters.map(ch => `<span class="swatch"><i style="--c:${ART.COLOR[ch.color].c}"></i>${esc(ch.colorName)}</span>`).join("")}</div>
-        <div class="facts"><span>미션 16개</span><span>약 5–8분</span><span>힌트 제공</span><span>완주 + 만족도 조사 → 참여 상품</span></div>
+        ${ART.garden(Array(TOTAL).fill("on"), null, { par: "xMidYMax meet", extra: sheep })}
       </div>
 
       ${settings.notice ? `<div class="notice">${esc(settings.notice)}</div>` : ""}
       ${settings.rewardSoldOut ? `<div class="notice">오늘 준비한 참여 상품이 모두 소진되었어요. 게임은 계속 즐길 수 있어요.</div>` : ""}
 
-      <div class="resume">
+      <div class="resume cover-cta">
         ${inProgress
           ? `<button class="btn pink" id="resumeBtn">이어서 탐험하기 <span class="tnum">(${progressText})</span></button>
              <button class="link" id="restartBtn" style="justify-self:center">처음부터 다시 하기</button>`
@@ -194,12 +186,11 @@
 
       <div class="logos">
         <img src="assets/logos.webp" alt="경기도, 경기환경에너지진흥원, 매력양평, 양평정원">
-        <small>로그인 없이 닉네임만으로 참여해요</small>
       </div>
     </section>`;
 
     const start = $("#startBtn");
-    if (start) start.addEventListener("click", () => go("nick"));
+    if (start) start.addEventListener("click", () => go("about"));
     const resume = $("#resumeBtn");
     if (resume) resume.addEventListener("click", () => {
       const target = S.screen === "intro" ? (S.completedAt ? "done" : S.lastScreen || "mission") : S.screen;
@@ -252,21 +243,25 @@
       S.nick = v;
       if (!S.startedAt) S.startedAt = Date.now();
       record({ nickname: v, started: true, startedAtMs: S.startedAt });
-      go("guide");
+      go("chapter");
     });
   };
 
-  /* ---------- 게임 방법 ---------- */
-  SCREENS.guide = function () {
+  /* ---------- 탐험 소개 (시작하기를 누르면 나오는 설명 페이지) ---------- */
+  SCREENS.about = function () {
     const kinds = ["choice", "ox", "word", "dial", "calendar", "pair", "palette"];
-    app.innerHTML = `<section class="screen">
-      ${topbar(false)}
-      <div style="display:grid;gap:6px">
-        <span class="eyebrow">탐험 안내</span>
-        <h1 class="big-title" style="color:var(--green-ink)">${esc(S.nick)}님,<br>이렇게 탐험해요</h1>
+    app.innerHTML = `<section class="screen about">
+      <button class="link back" id="backBtn">← 처음 화면</button>
+      <div class="about-head">
+        <span class="eyebrow">오늘의 탐험</span>
+        <h1 class="display about-title">${esc(C.program.title)}</h1>
+        <p class="lede">박람회 주제 '두물머리 사:색'처럼, 정원 곳곳에 숨은 <b>네 가지 색</b>을 미션으로 모아 나만의 정원을 완성해요.</p>
+      </div>
+      <div class="four-ch">
+        ${C.chapters.map((ch, i) => `<div class="ch-card" style="${colorVars(ch.color)}"><i></i><span class="n">${i + 1}장 · ${esc(ch.colorName)}</span><b>${esc(ch.title)}</b></div>`).join("")}
       </div>
       <ol class="howto">
-        <li><div><b>네 가지 색, 16개 미션</b><span>분홍 → 물빛 → 초록 → 노랑 순서로 장마다 4개씩 풀어요.</span></div></li>
+        <li><div><b>장마다 미션 4개, 모두 16개</b><span>분홍 → 물빛 → 초록 → 노랑 순서로 풀어요. 약 5–8분 걸려요.</span></div></li>
         <li><div><b>막히면 봉오리 힌트</b><span>힌트는 몇 번을 봐도 괜찮아요. 점수에는 영향이 없어요.</span></div></li>
         <li><div><b>틀려도 한 번 더</b><span>두 번째 기회가 있고, 정원 조각은 꼭 챙겨 드려요.</span></div></li>
         <li><div><b>만족도 조사 → 투어 안내소</b><span>탐험을 마치고 조사에 답하면 참여 상품을 드려요. (1인 1개)</span></div></li>
@@ -275,12 +270,17 @@
         <span class="eyebrow">만나게 될 놀이 7가지</span>
         <div class="kinds" style="--c-ink:var(--green-ink)">${kinds.map(k => `<span class="kind">${ART.kindIcon[k]("#45A577")}${ART.kindName[k]}</span>`).join("")}</div>
       </div>
+      <p class="small muted center" style="margin:0">로그인 없이 닉네임만 정하면 바로 시작해요</p>
       <div class="actionbar single">
-        <button class="btn pink" id="goCh">첫 번째 색 찾으러 가기 <span class="arrow">→</span></button>
+        <button class="btn pink" id="aboutGo">닉네임 정하고 시작하기 <span class="arrow">→</span></button>
       </div>
     </section>`;
-    $("#goCh").addEventListener("click", () => go("chapter"));
+    $("#backBtn").addEventListener("click", () => go("intro"));
+    $("#aboutGo").addEventListener("click", () => go("nick"));
   };
+
+  // 이전 버전에서 '게임 방법' 화면에 머물러 있던 참여자는 바로 첫 챕터로
+  SCREENS.guide = function () { go("chapter"); };
 
   /* ---------- 챕터 인트로 ---------- */
   SCREENS.chapter = function () {
