@@ -179,7 +179,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
 .resume { display: grid; gap: 8px; }
 
 /* ---------- 닉네임 ---------- */
-.meet { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: end; padding-top: 12px; }
+.meet { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: end; padding-top: 44px; }
 .meet img { width: 92px; }
 .bubble {
   position: relative; background: #fff; border: 1.5px solid var(--green-3);
@@ -208,7 +208,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
   background: linear-gradient(180deg, rgba(251,254,254,.97) 70%, rgba(251,254,254,0));
   display: grid; gap: 10px;
 }
-.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.topbar-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding-right: 50px; }
 .tour-title { font-family: var(--display); font-size: 19px; line-height: 1.2; color: var(--green-ink); min-width: 0; }
 .tour-title em { font-style: normal; color: var(--pink); }
 .garden-btn { flex: none; display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); background: #fff; border-radius: 999px; padding: 6px 12px 6px 8px; font-size: 13px; font-weight: 700; color: var(--ink-2); }
@@ -504,7 +504,7 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
 .sv-nav { display: flex; justify-content: space-between; align-items: center; }
 
 /* ---------- 상품 수령 ---------- */
-.stamp { justify-self: center; font-family: var(--display); font-size: 15px; color: #fff; background: var(--green); border-radius: 999px; padding: 6px 14px 4px; }
+.stamp { justify-self: center; align-self: center; font-family: var(--display); font-size: 15px; color: #fff; background: var(--green); border-radius: 999px; padding: 6px 14px 4px; }
 .ticket {
   position: relative; border-radius: 28px; overflow: hidden; background: #fff;
   box-shadow: 0 0 0 2px var(--pink-3), 0 14px 30px -18px rgba(181,31,102,.45);
@@ -551,3 +551,22 @@ button:focus-visible, input:focus-visible, textarea:focus-visible, [tabindex]:fo
 @media (min-width: 480px) {
   .app { padding-block: 12px; }
 }
+
+/* ---------- 배경음악 버튼 ---------- */
+.sound-btn {
+  position: fixed; z-index: 20;
+  top: calc(10px + env(safe-area-inset-top, 0px));
+  right: max(14px, calc((100vw - 440px) / 2 + 14px));
+  width: 42px; height: 42px; border-radius: 50%;
+  border: 1.5px solid var(--line); background: rgba(255,255,255,.94);
+  color: var(--ink-3); display: grid; place-items: center; padding: 0;
+  box-shadow: 0 2px 8px rgba(23,58,44,.08);
+}
+.sound-btn svg { width: 22px; height: 22px; grid-area: 1 / 1; }
+.sound-btn.on { color: var(--green); border-color: var(--green-3); }
+.sound-btn.on svg { transform: translateX(-5px); }
+.sound-btn .eq { grid-area: 1 / 1; display: flex; gap: 2px; align-items: flex-end; height: 12px; transform: translateX(8px); }
+.sound-btn .eq i { width: 2.5px; height: 100%; background: var(--pink); border-radius: 2px; transform-origin: bottom; animation: eq 1s ease-in-out infinite; }
+.sound-btn .eq i:nth-child(2) { animation-delay: -.35s; }
+.sound-btn .eq i:nth-child(3) { animation-delay: -.7s; }
+@keyframes eq { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }

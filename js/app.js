@@ -76,10 +76,36 @@
   /* ---------- 화면 전환 ---------- */
   function go(screen) { S.screen = screen; save(); render(); try { window.scrollTo({ top: 0 }); } catch (e) { window.scrollTo(0, 0); } }
 
+  // 화면별 배경음악: 1번 첫 화면·만족도 조사 / 2번 게임 / 3번 상품 수령
+  const MUSIC = { intro: "intro", about: "intro", nick: "intro", survey: "intro",
+    guide: "game", chapter: "game", mission: "game", chapterDone: "game", done: "game",
+    reward: "reward" };
+  function music() { if (window.TourAudio) TourAudio.play(MUSIC[S.screen] || null); }
+
   function render() {
     closeSheet();
     const fn = SCREENS[S.screen] || SCREENS.intro;
     fn();
+    music();
+  }
+
+  /* 배경음악 켜기/끄기 버튼 (모든 화면 오른쪽 위) */
+  function mountSoundButton() {
+    if (!window.TourAudio || !TourAudio.supported || document.getElementById("soundBtn")) return;
+    const b = document.createElement("button");
+    b.id = "soundBtn"; b.className = "sound-btn"; b.type = "button";
+    const paint = on => {
+      b.classList.toggle("on", on);
+      b.setAttribute("aria-pressed", on ? "true" : "false");
+      b.setAttribute("aria-label", on ? "배경음악 끄기" : "배경음악 켜기");
+      b.innerHTML = on
+        ? `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h3l4-4v14l-4-4H4z" fill="currentColor"/></svg><span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>`
+        : `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h3l4-4v14l-4-4H4z" fill="currentColor"/><path d="M15 9l6 6M21 9l-6 6" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>`;
+    };
+    paint(TourAudio.isEnabled());
+    TourAudio.onChange(paint);
+    b.addEventListener("click", () => TourAudio.toggle());
+    document.body.appendChild(b);
   }
 
   function topbar(showGarden = true) {
@@ -875,6 +901,7 @@
 
   // 테스트용: 주소 끝에 #reset → 이 휴대폰의 기록만 지우기 (config.js allowDeviceReset 이 true 일 때만)
   SCREENS.deviceReset = function () {
+    if (window.TourAudio) TourAudio.play(null);
     const allowed = !!CFG.allowDeviceReset;
     const has = S.nick ? `<b>${esc(S.nick)}</b> · 모은 조각 ${Object.keys(S.results).length}/${TOTAL}${S.surveyAt ? " · 만족도 조사 완료" : ""}` : "아직 참여 기록이 없어요.";
     app.innerHTML = `<section class="screen" style="justify-content:center">
@@ -904,6 +931,7 @@
   }
 
   function boot() {
+    mountSoundButton();
     if (location.hash === "#reset") { SCREENS.deviceReset(); DB.getSettings().then(s => { settings = s || {}; }); return; }
     if (!S.visited) logVisit();
     if (scheduleClosed() && !S.surveyAt) { SCREENS.closed(); return; }
