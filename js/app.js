@@ -156,6 +156,16 @@
     </section>`;
   };
 
+  /* 포스터 로고와 비슷하게: SB 어그로체 B(한글) + Poppins Bold(숫자)를 가로로 넓혀 배치 */
+  function titleSVG() {
+    return `<svg class="title-svg" viewBox="0 0 360 84" aria-hidden="true">
+      <text transform="translate(0 37) scale(1.03 1)" class="t-num" fill="#EE4A98" font-size="32" letter-spacing="-1.6">2026</text>
+      <text transform="translate(78 37) scale(1.23 1)" class="t-kr" fill="#1D8D57" font-size="26" letter-spacing="-1.2">경기</text>
+      <text transform="translate(139 19) scale(1.15 1)" class="t-num" fill="#1D8D57" font-size="12.5" letter-spacing="-0.3">14th</text>
+      <text transform="translate(1 79) scale(1.489 1)" class="t-kr" fill="#1D8D57" font-size="37" letter-spacing="-1.8">정원문화박람회</text>
+    </svg>`;
+  }
+
   /* ---------- 인트로 (첫 화면: 타이틀 + 그림 + 시작 버튼만) ---------- */
   SCREENS.intro = function () {
     if (S.surveyAt) return go("reward");
@@ -164,8 +174,7 @@
     const sheep = `<image class="sheep" href="assets/guide.webp" x="18" y="178" width="84" height="118"/>`;
     app.innerHTML = `<section class="screen cover">
       <div class="intro-head">
-        <div class="intro-year">2026 경기<sup>14th</sup></div>
-        <h1 class="intro-name display" style="margin:0">정원문화박람회</h1>
+        <h1 class="intro-title" aria-label="2026 경기 14th 정원문화박람회">${titleSVG()}</h1>
         <div class="intro-tour">모바일 게임 투어</div>
         <div class="intro-meta">10.16 – 10.19 · <b>양평 세미원·두물머리</b></div>
       </div>
@@ -216,7 +225,7 @@
     const ideas = shuffle(NICK_IDEAS, String(Date.now())).slice(0, 4);
     app.innerHTML = `<section class="screen">
       <div class="meet">
-        <img src="assets/guide.webp" alt="연잎 모자를 쓴 양 안내자">
+        <img src="assets/guide.webp" alt="연잎 모자를 쓴 안내자 양춘이">
         <div class="bubble">반가워요! 오늘 함께 정원을 걸을<br><b>탐험가 이름</b>을 알려 주세요.</div>
       </div>
       <form class="field" id="nickForm" novalidate>
@@ -261,10 +270,10 @@
         ${C.chapters.map((ch, i) => `<div class="ch-card" style="${colorVars(ch.color)}"><i></i><span class="n">${i + 1}장 · ${esc(ch.colorName)}</span><b>${esc(ch.title)}</b></div>`).join("")}
       </div>
       <ol class="howto">
-        <li><div><b>장마다 미션 4개, 모두 16개</b><span>분홍 → 물빛 → 초록 → 노랑 순서로 풀어요. 약 5–8분 걸려요.</span></div></li>
+        <li><div><b>장마다 미션 4개, 모두 16개</b><span>분홍 → 파랑 → 초록 → 노랑 순서로 풀어요. 약 5–8분 걸려요.</span></div></li>
         <li><div><b>막히면 봉오리 힌트</b><span>힌트는 몇 번을 봐도 괜찮아요. 점수에는 영향이 없어요.</span></div></li>
         <li><div><b>틀려도 한 번 더</b><span>두 번째 기회가 있고, 정원 조각은 꼭 챙겨 드려요.</span></div></li>
-        <li><div><b>만족도 조사 → 투어 안내소</b><span>탐험을 마치고 조사에 답하면 참여 상품을 드려요. (1인 1개)</span></div></li>
+        <li><div><b>만족도 조사 → 투어 안내소</b><span>탐험을 마치고 만족도 조사에 참여하면 정원을 사색할 수 있는 상품을 드려요. (1인 1개)</span></div></li>
       </ol>
       <div class="program" style="border-color:var(--line)">
         <span class="eyebrow">만나게 될 놀이 7가지</span>
@@ -351,7 +360,7 @@
   };
 
   function hintHTML(m) {
-    return `<div class="hint"><img src="assets/guide.webp" alt=""><div><b>양이가 살짝 알려줄게요</b><p>${esc(m.hint)}</p></div></div>`;
+    return `<div class="hint"><img src="assets/guide.webp" alt=""><div><b>양춘이가 살짝 알려줄게요</b><p>${esc(m.hint)}</p></div></div>`;
   }
   function openHint() {
     const m = M.m;
@@ -385,7 +394,7 @@
       case "pair": return m.answer.map(i => m.options[i]).join(" + ");
       case "palette": return m.options[m.answer].name;
       case "ox": return m.answer ? "O · 맞아요" : "X · 아니에요";
-      case "word": return m.answer;
+      case "word": return m.answerLabel || m.answer;
     }
   }
 
@@ -626,20 +635,24 @@
   /* 연밥 낱말 */
   PLAY.word = {
     html(m) {
-      const letters = Array.from(m.answer);
-      let tiles = shuffle(letters.concat(m.decoys), m.id);
-      if (tiles.join("").startsWith(m.answer)) tiles = shuffle(tiles, m.id + "x");
+      const letters = Array.from(m.answer), fixed = m.fixed || [];
+      const blanks = letters.filter((_, i) => !fixed.includes(i));
+      let tiles = shuffle(blanks.concat(m.decoys), m.id);
+      if (tiles.join("").startsWith(blanks.join(""))) tiles = shuffle(tiles, m.id + "x");
       M.tiles = tiles;
-      return `<div class="slots" id="slots">${letters.map((_, i) => `<button class="slot" data-s="${i}" aria-label="${i + 1}번째 칸"></button>`).join("")}</div>
+      let no = 0;
+      return `<div class="slots" id="slots">${letters.map((L, i) => fixed.includes(i)
+          ? `<span class="slot fixed" aria-hidden="true">${esc(L)}</span>`
+          : `<button class="slot" data-s="${i}" aria-label="${++no}번째 빈칸"></button>`).join("")}</div>
         <div class="pod" role="group" aria-label="연밥 씨앗 글자">${tiles.map((t, i) => `<button class="seed" data-t="${i}">${esc(t)}</button>`).join("")}</div>`;
     },
     bind(m) {
-      const n = Array.from(m.answer).length;
-      M.fill = Array(n).fill(null); // tile index per slot
+      const letters = Array.from(m.answer), fixed = m.fixed || [];
+      M.fill = letters.map((_, i) => fixed.includes(i) ? -1 : null); // -1 = 미리 채운 글자
       const paint = () => {
-        $$(".slot").forEach((s, i) => { const t = M.fill[i]; s.textContent = t === null ? "" : M.tiles[t]; s.classList.toggle("full", t !== null); });
+        $$(".slot[data-s]").forEach(s => { const t = M.fill[+s.dataset.s]; s.textContent = t === null ? "" : M.tiles[t]; s.classList.toggle("full", t !== null); });
         $$(".seed").forEach(s => s.classList.toggle("used", M.fill.includes(+s.dataset.t)));
-        M.value = M.fill.map(t => t === null ? "" : M.tiles[t]);
+        M.value = M.fill.map((t, i) => t === -1 ? letters[i] : t === null ? "" : M.tiles[t]);
         setReady(M.fill.every(t => t !== null));
         $("#slots").classList.remove("wrong");
       };
@@ -647,13 +660,13 @@
         const at = M.fill.indexOf(null); if (at < 0) return;
         M.fill[at] = +s.dataset.t; paint();
       }));
-      $$(".slot").forEach(s => s.addEventListener("click", () => { M.fill[+s.dataset.s] = null; paint(); }));
+      $$(".slot[data-s]").forEach(s => s.addEventListener("click", () => { M.fill[+s.dataset.s] = null; paint(); }));
       M.paintWord = paint;
       paint();
     },
     wrong() { $("#slots").classList.add("wrong"); },
-    reset() { M.fill = M.fill.map(() => null); M.paintWord(); },
-    reveal(m) { const letters = Array.from(m.answer); $$(".slot").forEach((s, i) => { s.textContent = letters[i]; s.classList.add("full"); }); }
+    reset() { M.fill = M.fill.map(t => t === -1 ? -1 : null); M.paintWord(); },
+    reveal(m) { const letters = Array.from(m.answer); $$(".slot[data-s]").forEach(s => { s.textContent = letters[+s.dataset.s]; s.classList.add("full"); }); }
   };
 
   /* ---------- 챕터 완료 ---------- */
